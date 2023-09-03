@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -18,8 +19,8 @@ func main() {
 
 	fileScanner.Split(bufio.ScanLines)
 
-	calories := 0
-	maxCalories := 0
+	var calories []int
+	subTotal := 0
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
 		if len(line) > 0 {
@@ -27,15 +28,16 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			calories += v
+			subTotal += v
 		} else {
-			if calories > maxCalories {
-				maxCalories = calories
-			}
-			calories = 0
+			calories = append(calories, subTotal)
+			subTotal = 0
 		}
 	}
-	fmt.Printf("max calories = %d\n", maxCalories)
+	sort.Ints(calories)
+
+	fmt.Printf("max calories = %d\n", calories[len(calories)-1])
+	fmt.Printf("total top 3 calories = %d\n", calories[len(calories)-1]+calories[len(calories)-2]+calories[len(calories)-3])
 
 	readFile.Close()
 }
