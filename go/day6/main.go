@@ -32,6 +32,18 @@ func main() {
 			last4Buffer = append(last4Buffer, char)
 		}
 
+		var last14Buffer []string
+		for i, char := range signal {
+			if len(last14Buffer) == 14 {
+				if allUnique(last14Buffer) {
+					fmt.Printf("part2 index %d\n", i)
+					break
+				}
+				last14Buffer = last14Buffer[1:]
+			}
+			last14Buffer = append(last14Buffer, char)
+		}
+
 	}
 
 	readFile.Close()
