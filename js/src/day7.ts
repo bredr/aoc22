@@ -28,6 +28,15 @@ lines.forEach(line => {
     }
 })
 
-console.log(sizes)
 const total = Object.values(sizes).filter(x => x<=100000).reduce((xx,x)=> xx+x, 0)
 console.log("part1 sum", total)
+
+const neededSpace = 30000000 - (70000000 - sizes["/"])
+const sizeValues =Object.values(sizes)
+sizeValues.sort((a,b) => a - b)
+for(const x of sizeValues) {
+    if (x > neededSpace) {
+        console.log("part2 size", x)
+        break;
+    }
+}
