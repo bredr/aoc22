@@ -8,7 +8,8 @@
     "day5": "ts-node ./src/day5.ts",
     "day7": "ts-node ./src/day7.ts",
     "day8": "ts-node ./src/day8.ts",
-    "day9": "ts-node ./src/day9.ts"
+    "day9": "ts-node ./src/day9.ts",
+    "day11": "ts-node ./src/day11.ts"
   },
   "keywords": [],
   "author": "",
