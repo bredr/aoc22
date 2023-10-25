@@ -34,7 +34,7 @@ func main() {
 	}
 	readFile.Close()
 
-	var rocks [][]int
+	rocks := make(map[[2]int]struct{})
 	minY := 0
 	for _, path := range paths {
 		for ix, coord := range path {
@@ -50,97 +50,105 @@ func main() {
 			}
 			if x1 == x2 {
 				for y := min(y1, y2); y <= max(y1, y2); y++ {
-					rocks = append(rocks, []int{x1, y})
+					rocks[[2]int{x1, y}] = struct{}{}
 				}
 			} else {
 				for x := min(x1, x2); x <= max(x1, x2); x++ {
-					rocks = append(rocks, []int{x, y1})
+					rocks[[2]int{x, y1}] = struct{}{}
 				}
 			}
-			rocks = append(rocks, coord)
 		}
 	}
-	var grains [][]int
-	printLayout(rocks, grains)
+	grains := make(map[[2]int]struct{})
 outerLoop:
 	for {
-		current := []int{500, 0}
+		current := [2]int{500, 0}
 		for {
 			if current[1] > minY+1 {
 				break outerLoop
 			}
 			// bloked down
-			nextPossible := []int{current[0], current[1] + 1}
-			blocked := false
-			for _, rock := range rocks {
-				if nextPossible[0] == rock[0] && nextPossible[1] == rock[1] {
-					blocked = true
-					break
-				}
-			}
-			for _, grain := range grains {
-				if nextPossible[0] == grain[0] && nextPossible[1] == grain[1] {
-					blocked = true
-					break
-				}
-			}
-			if !blocked {
+			nextPossible := [2]int{current[0], current[1] + 1}
+			_, rocksBlocked := rocks[nextPossible]
+			_, grainsBlocked := grains[nextPossible]
+			if !rocksBlocked && !grainsBlocked {
 				current = nextPossible
 				continue
 			}
 			// blocked down-left
-			blocked = false
-			nextPossible = []int{current[0] - 1, current[1] + 1}
-			for _, rock := range rocks {
-				if nextPossible[0] == rock[0] && nextPossible[1] == rock[1] {
-					blocked = true
-					break
-				}
-			}
-			for _, grain := range grains {
-				if nextPossible[0] == grain[0] && nextPossible[1] == grain[1] {
-					blocked = true
-					break
-				}
-			}
-			if !blocked {
+			nextPossible = [2]int{current[0] - 1, current[1] + 1}
+			_, rocksBlocked = rocks[nextPossible]
+			_, grainsBlocked = grains[nextPossible]
+			if !rocksBlocked && !grainsBlocked {
 				current = nextPossible
 				continue
 			}
 			// blocked down-right
-			blocked = false
-			nextPossible = []int{current[0] + 1, current[1] + 1}
-			for _, rock := range rocks {
-				if nextPossible[0] == rock[0] && nextPossible[1] == rock[1] {
-					blocked = true
-					break
-				}
-			}
-			for _, grain := range grains {
-				if nextPossible[0] == grain[0] && nextPossible[1] == grain[1] {
-					blocked = true
-					break
-				}
-			}
-			if !blocked {
+			nextPossible = [2]int{current[0] + 1, current[1] + 1}
+			_, rocksBlocked = rocks[nextPossible]
+			_, grainsBlocked = grains[nextPossible]
+			if !rocksBlocked && !grainsBlocked {
 				current = nextPossible
 				continue
 			}
 			/// stop
 			break
 		}
-		grains = append(grains, current)
+		grains[current] = struct{}{}
 	}
 	printLayout(rocks, grains)
 
 	fmt.Println("Total grains", len(grains))
+
+	grains2 := make(map[[2]int]struct{})
+	for {
+		current := [2]int{500, 0}
+		for {
+			// bloked down
+			nextPossible := [2]int{current[0], current[1] + 1}
+			_, rocksBlocked := rocks[nextPossible]
+			_, grainsBlocked := grains2[nextPossible]
+			bottomBlocked := nextPossible[1] == minY+2
+			if !rocksBlocked && !bottomBlocked && !grainsBlocked {
+				current = nextPossible
+				continue
+			}
+			// blocked down-left
+			nextPossible = [2]int{current[0] - 1, current[1] + 1}
+			_, rocksBlocked = rocks[nextPossible]
+			_, grainsBlocked = grains2[nextPossible]
+			bottomBlocked = nextPossible[1] == minY+2
+			if !rocksBlocked && !bottomBlocked && !grainsBlocked {
+				current = nextPossible
+				continue
+			}
+			// blocked down-right
+			nextPossible = [2]int{current[0] + 1, current[1] + 1}
+			_, rocksBlocked = rocks[nextPossible]
+			_, grainsBlocked = grains2[nextPossible]
+			bottomBlocked = nextPossible[1] == minY+2
+			if !rocksBlocked && !bottomBlocked && !grainsBlocked {
+				current = nextPossible
+				continue
+			}
+			/// stop
+			break
+		}
+		grains2[current] = struct{}{}
+		if current[0] == 500 && current[1] == 0 {
+			break
+		}
+	}
+	printLayout(rocks, grains2)
+
+	fmt.Println("Total grains, part 2", len(grains2))
 }
 
-func printLayout(rocks [][]int, grains [][]int) {
+func printLayout(rocks map[[2]int]struct{}, grains map[[2]int]struct{}) {
 	minX := 500
 	maxX := 500
 	maxY := 0
-	for _, rock := range rocks {
+	for rock := range rocks {
 		x := rock[0]
 		y := rock[1]
 		if x < minX {
@@ -154,20 +162,30 @@ func printLayout(rocks [][]int, grains [][]int) {
 			maxY = y
 		}
 	}
-	for y := 0; y <= maxY; y++ {
+	for grain := range grains {
+		x := grain[0]
+		y := grain[1]
+		if x < minX {
+			minX = x
+		}
+		if x > maxX {
+			maxX = x
+
+		}
+		if y > maxY {
+			maxY = y
+		}
+	}
+	for y := 0; y <= maxY+2; y++ {
 	coord:
 		for x := minX; x <= maxX; x++ {
-			for _, rock := range rocks {
-				if rock[0] == x && rock[1] == y {
-					fmt.Print("#")
-					continue coord
-				}
+			if _, ok := rocks[[2]int{x, y}]; ok {
+				fmt.Print("#")
+				continue coord
 			}
-			for _, grain := range grains {
-				if grain[0] == x && grain[1] == y {
-					fmt.Print("+")
-					continue coord
-				}
+			if _, ok := grains[[2]int{x, y}]; ok {
+				fmt.Print("+")
+				continue coord
 			}
 			fmt.Print(".")
 		}
