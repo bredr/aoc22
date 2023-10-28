@@ -70,7 +70,51 @@ func main() {
 			}
 		}
 	}
-
 	fmt.Println("part1=", len(noBeacon))
 
+	limit := 4000000
+	excluded := make(map[[2]int]struct{})
+	for _, pair := range closest {
+		if 0 <= pair.Sensor[1] && pair.Sensor[1] <= limit {
+			excluded[pair.Sensor] = struct{}{}
+		}
+		if 0 <= pair.Beacon[1] && pair.Beacon[1] <= limit {
+			excluded[pair.Sensor] = struct{}{}
+		}
+	}
+
+	// part 2
+	radii := make(map[[2]int]int)
+	for _, pair := range closest {
+		radii[pair.Sensor] = hamiltonDistance(pair.Sensor, pair.Beacon)
+	}
+	acoeffs := make(map[int]struct{})
+	bcoeffs := make(map[int]struct{})
+	for k, v := range radii {
+		acoeffs[k[1]-k[0]+v+1] = struct{}{}
+		acoeffs[k[1]-k[0]-v-1] = struct{}{}
+		bcoeffs[k[0]+k[1]+v+1] = struct{}{}
+		bcoeffs[k[0]+k[1]-v-1] = struct{}{}
+	}
+
+	bound := 4000000
+outer:
+	for a := range acoeffs {
+		for b := range bcoeffs {
+			p := [2]int{(b - a) / 2, (a + b) / 2}
+			if 0 <= p[0] && p[0] <= bound && 0 <= p[1] && p[1] <= bound {
+				seen := false
+				for sensor, r := range radii {
+					if hamiltonDistance(sensor, p) <= r {
+						seen = true
+						break
+					}
+				}
+				if !seen {
+					fmt.Println("part2=", p[0]*4000000+p[1])
+					break outer
+				}
+			}
+		}
+	}
 }
