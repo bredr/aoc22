@@ -30,7 +30,7 @@ func main() {
 		}
 		values[i] = n
 	}
-	part1 := shuffled(values)
+	part1 := shuffled(values, 1, 1)
 
 	indexOfZero := 0
 	for i, v := range part1 {
@@ -42,35 +42,48 @@ func main() {
 	part1Answer := part1[(indexOfZero+1000)%len(part1)] + part1[(indexOfZero+2000)%len(part1)] + part1[(indexOfZero+3000)%len(part1)]
 	fmt.Println("part1=", part1Answer)
 
+	part2 := shuffled(values, 811589153, 10)
+
+	indexOfZero = 0
+	for i, v := range part2 {
+		if v == 0 {
+			indexOfZero = i
+			break
+		}
+	}
+	part2Answer := part2[(indexOfZero+1000)%len(part2)] + part2[(indexOfZero+2000)%len(part2)] + part2[(indexOfZero+3000)%len(part2)]
+	fmt.Println("part2=", part2Answer)
+
 }
 
-func shuffled(values []int) []int {
+func shuffled(values []int, decriptionKey int, rounds int) []int {
 	// copy to outputs
 	output := make([]Node, len(values))
 	for i, v := range values {
-		output[i] = Node{Value: v, Index: i}
+		output[i] = Node{Value: v * decriptionKey, Index: i}
 	}
 	out := make([]int, len(values))
-
-	for i := range values {
-		nodeOfInstruction := Node{}
-		indexOfInstruction := 0
-		for j, node := range output {
-			if node.Index == i {
-				nodeOfInstruction = node
-				indexOfInstruction = j
-				break
+	for round := 0; round < rounds; round++ {
+		for i := range values {
+			nodeOfInstruction := Node{}
+			indexOfInstruction := 0
+			for j, node := range output {
+				if node.Index == i {
+					nodeOfInstruction = node
+					indexOfInstruction = j
+					break
+				}
 			}
+			instruction := (nodeOfInstruction.Value % (len(values) - 1))
+			newIndex := indexOfInstruction + instruction
+			if newIndex >= len(values) {
+				newIndex = newIndex - len(values) + 1
+			} else if newIndex <= 0 {
+				newIndex = newIndex + len(values) - 1
+			}
+			output = append(output[:indexOfInstruction], output[indexOfInstruction+1:]...)
+			output = append(output[:newIndex], append([]Node{nodeOfInstruction}, output[newIndex:]...)...)
 		}
-		instruction := (nodeOfInstruction.Value % (len(values) - 1))
-		newIndex := indexOfInstruction + instruction
-		if newIndex >= len(values) {
-			newIndex = newIndex - len(values) + 1
-		} else if newIndex <= 0 {
-			newIndex = newIndex + len(values) - 1
-		}
-		output = append(output[:indexOfInstruction], output[indexOfInstruction+1:]...)
-		output = append(output[:newIndex], append([]Node{nodeOfInstruction}, output[newIndex:]...)...)
 	}
 	for i, v := range output {
 		out[i] = v.Value
