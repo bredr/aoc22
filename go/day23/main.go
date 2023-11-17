@@ -33,16 +33,21 @@ func main() {
 		}
 	}
 
+	part1 := make([]*Elf, len(elves))
+	for i, elf := range elves {
+		part1[i] = &Elf{X: elf.X, Y: elf.Y}
+	}
+
 	for i := 0; i < 10; i++ {
-		makeProposals(elves, i%4)
-		removeDuplicateProposals(elves)
-		moveElves(elves)
+		makeProposals(part1, i%4)
+		removeDuplicateProposals(part1)
+		moveElves(part1)
 	}
 	minX := 1000
 	maxX := 0
 	minY := 1000
 	maxY := 0
-	for _, elf := range elves {
+	for _, elf := range part1 {
 		if elf.X > maxX {
 			maxX = elf.X
 		}
@@ -58,6 +63,21 @@ func main() {
 	}
 	fmt.Println("part1 = ", (maxX-minX+1)*(maxY-minY+1)-len(elves))
 
+	part2 := make([]*Elf, len(elves))
+	for i, elf := range elves {
+		part2[i] = &Elf{X: elf.X, Y: elf.Y}
+	}
+	i := 0
+	for {
+		makeProposals(part2, i%4)
+		removeDuplicateProposals(part2)
+		if elvesMoving(part2) == 0 {
+			fmt.Println("part2=", i+1)
+			break
+		}
+		moveElves(part2)
+		i++
+	}
 }
 
 func makeProposals(elves []*Elf, direction int) {
@@ -205,6 +225,16 @@ func moveElves(elves []*Elf) {
 			elf.Proposal = nil
 		}
 	}
+}
+
+func elvesMoving(elves []*Elf) int {
+	count := 0
+	for _, elf := range elves {
+		if elf.Proposal != nil {
+			count++
+		}
+	}
+	return count
 }
 
 func printElves(elves []*Elf) {
